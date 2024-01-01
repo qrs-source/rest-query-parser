@@ -14,7 +14,7 @@ func Test_Where(t *testing.T) {
 			Name:   "id",
 			Method: NOT,
 		}
-		_, err := filter.Where()
+		_, err := filter.Where(1)
 		assert.Equal(t, err, ErrUnknownMethod)
 
 		filter = Filter{
@@ -22,7 +22,7 @@ func Test_Where(t *testing.T) {
 			Name:   "id",
 			Method: "fake",
 		}
-		_, err = filter.Where()
+		_, err = filter.Where(1)
 		assert.Equal(t, err, ErrUnknownMethod)
 	})
 }

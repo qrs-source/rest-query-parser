@@ -20,9 +20,10 @@ type Query struct {
 	Sorts   []Sort
 	Filters []*Filter
 
-	delimiterIN   string
-	delimiterOR   string
-	ignoreUnknown bool
+	delimiterIN    string
+	delimiterOR    string
+	ignoreUnknown  bool
+	useNamedFields bool
 
 	Error error
 }
@@ -92,6 +93,11 @@ func (q *Query) SetDelimiterIN(d string) *Query {
 // SetDelimiterOR sets delimiter for OR filters in query part of URL
 func (q *Query) SetDelimiterOR(d string) *Query {
 	q.delimiterOR = d
+	return q
+}
+
+func (q *Query) UseNamedFields(b bool) *Query {
+	q.useNamedFields = b
 	return q
 }
 
@@ -383,12 +389,13 @@ func (q *Query) SetLimit(limit int) *Query {
 // Clone makes copy of Query
 func (q *Query) Clone() *Query {
 	qNew := &Query{
-		Offset:        q.Offset,
-		Limit:         q.Limit,
-		delimiterIN:   q.delimiterIN,
-		delimiterOR:   q.delimiterOR,
-		ignoreUnknown: q.ignoreUnknown,
-		Error:         q.Error,
+		Offset:         q.Offset,
+		Limit:          q.Limit,
+		delimiterIN:    q.delimiterIN,
+		delimiterOR:    q.delimiterOR,
+		ignoreUnknown:  q.ignoreUnknown,
+		useNamedFields: q.useNamedFields,
+		Error:          q.Error,
 	}
 
 	// copy query map
@@ -508,7 +515,7 @@ func (q *Query) Where() string {
 			prefix = " AND "
 		}
 
-		if a, err := filter.Where(); err == nil {
+		if a, err := filter.Where(i + 1); err == nil {
 			where += fmt.Sprintf("%s%s%s", prefix, a, suffix)
 		} else {
 			continue
@@ -739,7 +746,7 @@ func (q *Query) parseFilter(key, value string) error {
 				return errors.Wrap(ErrEmptyValue, key)
 			}
 
-			filter, err := newFilter(key, v, q.delimiterIN, q.validations)
+			filter, err := newFilter(key, v, q.delimiterIN, q.validations, q.useNamedFields)
 
 			if err != nil {
 				if err == ErrValidationNotFound {
@@ -764,7 +771,7 @@ func (q *Query) parseFilter(key, value string) error {
 			q.Filters = append(q.Filters, filter)
 		}
 	} else { // Single filter
-		filter, err := newFilter(key, value, q.delimiterIN, q.validations)
+		filter, err := newFilter(key, value, q.delimiterIN, q.validations, q.useNamedFields)
 		if err != nil {
 			if err == ErrValidationNotFound {
 				err = ErrFilterNotFound
