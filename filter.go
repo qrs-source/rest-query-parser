@@ -135,7 +135,8 @@ func (f *Filter) validate(validate ValidationFunc) error {
 }
 
 // parseKey parses key to set f.Name and f.Method
-//   id[eq] -> f.Name = "id", f.Method = EQ
+//
+//	id[eq] -> f.Name = "id", f.Method = EQ
 func (f *Filter) parseKey(key string) error {
 
 	// default Method is EQ
